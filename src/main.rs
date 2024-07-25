@@ -1,4 +1,27 @@
+use anyhow::anyhow;
+use clap::builder::TypedValueParser;
 use clap::Parser;
+use csv::Reader;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Player {
+    #[serde(rename = "Name")]
+    name: String,
+
+    #[serde(rename = "Position")]
+    position: String,
+
+    #[serde(rename = "DOB")]
+    dob: String,
+
+    #[serde(rename = "Nationality")]
+    nationality: String,
+
+    #[serde(rename = "Kit Number")]
+    kib: u8,
+
+}
 
 // rcli csv -i input.csv -o output.json --header --d ','
 #[derive(Debug, Parser)]
@@ -33,10 +56,26 @@ struct CsvOpts {
     header: bool,
 }
 
-fn main() {
+// anyhow 实现了 大多数standard 的转换
+fn main() -> anyhow::Result<()> {
     let opts = Opts::parse();
 
+
     println!("{:?}", opts);
+
+    match opts.cmd {
+        SubCommand::Csv(opts) => {
+            // Result 使用 ？ 在内部作  match 处理 Ok(v) Err(e) 其他 error 可以转换为 anyhow的error
+            let mut reader = Reader::from_path(opts.input)?;
+            for result in reader.deserialize() {
+                let player: Player  = result?;
+                println!("{:?}", player);
+            }
+
+        }
+    }
+
+    Ok(())
 }
 
 
@@ -44,7 +83,7 @@ fn main() {
 // fn verify_input_file(filename: &str) -> Result<String, String> {
 fn verify_input_file(filename: &str) -> Result<String, &'static str> {
     if std::path::Path::new(filename).exists() {
-        Ok(filename.into())// into 将 &str 转为 String
+        Ok(filename.into()) // into 将 &str 转为 String
     } else {
         Err("File does not exist")
     }
