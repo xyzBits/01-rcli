@@ -3,8 +3,11 @@ name = "rcli"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+authors = ["tom"]
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# 有些 feature 不需要，控制 feature，可以控制项目的二进制大小
+clap = { version = "4.5.10", features = ["derive"] }
