@@ -32,6 +32,8 @@ pub fn process_csv(input: &str, output: &str) -> anyhow::Result<()> {
     // let headers = reader.headers()?;
     // mutable reader.headers() 也是可变引用
     let headers = reader.headers()?.clone();
+    // headers = StringRecord(["Name", "Position", "DOB", "Nationality", "Kit Number"])
+    println!("headers = {:?}", headers);
 
     // for result in reader.deserialize::<Player>() {
     for result in reader.records() {// reader.records() 也是 可变引用，多个可变引用不能共存
@@ -55,4 +57,34 @@ pub fn process_csv(input: &str, output: &str) -> anyhow::Result<()> {
     let json = serde_json::to_string_pretty(&ret)?;
     fs::write(output, json)?; // => ()
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use csv::StringRecord;
+    use serde_json::Value;
+
+    #[test]
+    fn test_iter_zip() {
+        let a = [1, 2, 3];
+        let b = [4, 5, 6];
+
+        let c = a.into_iter()
+            .zip(b.into_iter())
+            .collect::<Vec<_>>();
+        println!("{:?}", c);
+
+        // headers = StringRecord(["Name", "Position", "DOB", "Nationality", "Kit Number"])
+
+        let mut headers = StringRecord::from(vec!["Name", "Position", "DOB", "Nationality", "Kit Number"]);
+        let mut record = StringRecord::from(vec!["Wojciech Szczesny", "Goalkeeper", "Apr 18, 1990 (29)", "Poland", "1"]);
+
+        let json_value = headers
+            .iter()
+            .zip(record.iter())
+            .collect::<Value>();
+
+        println!("{}", serde_json::to_string_pretty(&json_value).unwrap());
+    }
 }
