@@ -12,7 +12,14 @@ fn main() -> anyhow::Result<()> {
     match opts.cmd {
         // 使用到 opts 中的数据结构，必须是 pub 的
         SubCommand::Csv(opts) => {
-            process_csv(&opts.input, &opts.output)?;
+            let output = if let Some(output) = opts.output {
+                output.clone()
+            } else {
+                // {} 中能够使用，format 需要 impl Display
+                format!("output.{}", opts.format)
+                // "output.json".into()
+            };
+            process_csv(&opts.input, output, opts.format)?;
         }
     }
 

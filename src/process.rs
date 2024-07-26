@@ -1,8 +1,11 @@
+use std::fmt::{Display, Formatter};
 use std::fs;
 
 use csv::Reader;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use crate::opts::OutputFormat;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "PascalCase")] // 不用在每个域上进行处理，只需要对特定的域进行处理，例如 DOB Kit Number
@@ -23,7 +26,7 @@ pub struct Player {
     kib: u8,
 }
 
-pub fn process_csv(input: &str, output: &str) -> anyhow::Result<()> {
+pub fn process_csv(input: &str, output: String, format: OutputFormat) -> anyhow::Result<()> {
     // Result 使用 ？ 在内部作  match 处理 Ok(v) Err(e) 其他 error 可以转换为 anyhow的error
     let mut reader = Reader::from_path(input)?; // std::result::Result -> anyhow::Result
 
@@ -36,7 +39,8 @@ pub fn process_csv(input: &str, output: &str) -> anyhow::Result<()> {
     println!("headers = {:?}", headers);
 
     // for result in reader.deserialize::<Player>() {
-    for result in reader.records() {// reader.records() 也是 可变引用，多个可变引用不能共存
+    for result in reader.records() {
+        // reader.records() 也是 可变引用，多个可变引用不能共存
         // let player: Player = result?;
 
         // 不依赖于具体的数据类型，将 csv 转成 json
@@ -44,21 +48,31 @@ pub fn process_csv(input: &str, output: &str) -> anyhow::Result<()> {
         // StringRecord(["Wojciech Szczesny", "Goalkeeper", "Apr 18, 1990 (29)", "Poland", "1"])
         let record = result?;
 
-
-        let json_value = headers
-            .iter()
-            .zip(record.iter())
-            .collect::<Value>();
+        // headers.iter() -> 使用 headers 的迭代器
+        // record.iter() -> 使用 record 的迭代器
+        // zip() -> 将两个迭代器合并为一个元组的迭代器，[(header, record), ...]
+        // collect::<Value>() -> 将元组转换为 JSON value
+        let json_value = headers.iter().zip(record.iter()).collect::<Value>();
 
         println!("{:?}", record);
         ret.push(json_value);
     }
 
-    let json = serde_json::to_string_pretty(&ret)?;
-    fs::write(output, json)?; // => ()
+    let content = match format {
+        OutputFormat::Json => serde_json::to_string_pretty(&ret)?,
+        OutputFormat::Yaml => serde_yaml::to_string(&ret)?,
+        // OutputFormat::Toml => toml::to_string(&ret)?,
+    };
+    // let json = serde_json::to_string_pretty(&ret)?;
+    fs::write(output, content)?; // => ()
     Ok(())
 }
 
+impl Display for OutputFormat {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", Into::<&'static str>::into(*self))
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -70,20 +84,22 @@ mod tests {
         let a = [1, 2, 3];
         let b = [4, 5, 6];
 
-        let c = a.into_iter()
-            .zip(b.into_iter())
-            .collect::<Vec<_>>();
+        let c = a.into_iter().zip(b.into_iter()).collect::<Vec<_>>();
         println!("{:?}", c);
 
         // headers = StringRecord(["Name", "Position", "DOB", "Nationality", "Kit Number"])
 
-        let mut headers = StringRecord::from(vec!["Name", "Position", "DOB", "Nationality", "Kit Number"]);
-        let mut record = StringRecord::from(vec!["Wojciech Szczesny", "Goalkeeper", "Apr 18, 1990 (29)", "Poland", "1"]);
+        let mut headers =
+            StringRecord::from(vec!["Name", "Position", "DOB", "Nationality", "Kit Number"]);
+        let mut record = StringRecord::from(vec![
+            "Wojciech Szczesny",
+            "Goalkeeper",
+            "Apr 18, 1990 (29)",
+            "Poland",
+            "1",
+        ]);
 
-        let json_value = headers
-            .iter()
-            .zip(record.iter())
-            .collect::<Value>();
+        let json_value = headers.iter().zip(record.iter()).collect::<Value>();
 
         println!("{}", serde_json::to_string_pretty(&json_value).unwrap());
     }
