@@ -5,7 +5,7 @@ use csv::Reader;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::opts::OutputFormat;
+use crate::cli::OutputFormat;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "PascalCase")] // 不用在每个域上进行处理，只需要对特定的域进行处理，例如 DOB Kit Number
@@ -90,9 +90,9 @@ mod tests {
 
         // headers = StringRecord(["Name", "Position", "DOB", "Nationality", "Kit Number"])
 
-        let mut headers =
+        let headers =
             StringRecord::from(vec!["Name", "Position", "DOB", "Nationality", "Kit Number"]);
-        let mut record = StringRecord::from(vec![
+        let record = StringRecord::from(vec![
             "Wojciech Szczesny",
             "Goalkeeper",
             "Apr 18, 1990 (29)",

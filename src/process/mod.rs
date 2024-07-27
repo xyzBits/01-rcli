@@ -1,5 +1,7 @@
-mod gen_pass;
+mod b64;
 pub mod csv_convert;
+mod gen_pass;
 
-pub use csv_convert::process_csv;
-pub use gen_pass::process_genpass;
+pub use b64::*;
+pub use csv_convert::*;
+pub use gen_pass::*;

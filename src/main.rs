@@ -1,6 +1,9 @@
 use clap::Parser;
 
-use rcli::{Opts, process_csv, process_genpass, SubCommand};
+use rcli::{
+    process_csv, process_decode, process_encode, process_genpass, Base64SubCommand, Opts,
+    SubCommand,
+};
 
 // anyhow 实现了 大多数 standard 的转换
 // 其他类型的 Result 都能转换为 anyhow::Result
@@ -23,8 +26,24 @@ fn main() -> anyhow::Result<()> {
         }
 
         SubCommand::GenPass(opts) => {
-            process_genpass(opts.length, opts.uppercase, opts.lowercase, opts.number, opts.symbol)?;
+            process_genpass(
+                opts.length,
+                opts.uppercase,
+                opts.lowercase,
+                opts.number,
+                opts.symbol,
+            )?;
         }
+
+        SubCommand::Base64(subcmd) => match subcmd {
+            Base64SubCommand::Encode(opts) => {
+                process_encode(&opts.input, opts.format)?;
+            }
+
+            Base64SubCommand::Decode(opts) => {
+                process_decode(&opts.input, opts.format)?;
+            }
+        },
     }
 
     Ok(())

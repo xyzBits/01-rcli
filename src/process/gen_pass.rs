@@ -1,3 +1,4 @@
+// 这个 trait 是在 rand::seq 中为 [T] 实现的，所以需要 import 到这里
 use rand::seq::SliceRandom;
 use zxcvbn::zxcvbn;
 
@@ -21,6 +22,7 @@ pub fn process_genpass(
 
     if upper {
         chars.extend_from_slice(UPPER);
+        // 保证每种类型的字符都有一个
         password.push(*NUMBER.choose(&mut rng).expect("UPPER won't be empty"));
     }
 
