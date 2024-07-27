@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use rcli::{process_csv, Opts, SubCommand};
+use rcli::{Opts, process_csv, process_genpass, SubCommand};
 
 // anyhow 实现了 大多数 standard 的转换
 // 其他类型的 Result 都能转换为 anyhow::Result
@@ -20,6 +20,10 @@ fn main() -> anyhow::Result<()> {
                 // "output.json".into()
             };
             process_csv(&opts.input, output, opts.format)?;
+        }
+
+        SubCommand::GenPass(opts) => {
+            process_genpass(opts.length, opts.uppercase, opts.lowercase, opts.number, opts.symbol)?;
         }
     }
 

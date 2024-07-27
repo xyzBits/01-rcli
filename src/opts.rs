@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use clap::Parser;
+
 /// https://juejin.cn/post/7242623208825110586?searchId=20240726205358129C4D8536158F998172
 ///  clap 的使用方式
 /// 0. 先创建一个 struct，其中的字段就是命令行的参数名称
@@ -25,7 +26,7 @@ pub enum SubCommand {
     Csv(CsvOpts),
 
     #[command(name = "genpass", about = "Generate a random password")]
-    GenPass(GenPassOpts), 
+    GenPass(GenPassOpts),
 }
 
 // 单一的值，不存在堆上的引用，占用小
@@ -64,7 +65,21 @@ pub struct CsvOpts {
 
 #[derive(Debug, Parser)]
 pub struct GenPassOpts {
-    
+    #[arg(short, long, default_value_t = 16)]
+    pub length: u8,
+
+    #[arg(long, default_value_t = true)]
+    pub uppercase: bool,
+
+    #[arg(long, default_value_t = true)]
+    pub lowercase: bool,
+
+    #[arg(long, default_value_t = true)]
+    pub number: bool,
+
+    #[arg(long, default_value_t = true)]
+    pub symbol: bool,
+
 }
 
 // &'static 生命周期和进程是一样的
