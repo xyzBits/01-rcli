@@ -1,4 +1,5 @@
 use rand::seq::SliceRandom;
+use zxcvbn::zxcvbn;
 
 // const 类型必须要指定，这里也不用指定 生命周期为 'static ，
 const UPPER: &'static [u8] = b"ABCDEFGHGKLMNPQRSTUVWXYZ";
@@ -48,7 +49,11 @@ pub fn process_genpass(
     password.shuffle(&mut rng);
     // todo: make sure the password has at least one of each type
 
-    println!("password = {}", String::from_utf8(password)?);
+    let password = String::from_utf8(password)?;
+    println!("password = {}", password);
 
+    // output password strength in stderr
+    let estimate = zxcvbn(&password, &[])?;
+    eprintln!("Password strength: {}", estimate.score());
     Ok(())
 }
