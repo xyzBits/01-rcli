@@ -23,6 +23,9 @@ pub enum SubCommand {
     // 子命令是另一套参数集合 git config, config 就是子命令
     #[command(name = "csv", about = "Show CSV, or Convert CSV to other formats")]
     Csv(CsvOpts),
+
+    #[command(name = "genpass", about = "Generate a random password")]
+    GenPass(GenPassOpts), 
 }
 
 // 单一的值，不存在堆上的引用，占用小
@@ -59,6 +62,11 @@ pub struct CsvOpts {
     pub header: bool,
 }
 
+#[derive(Debug, Parser)]
+pub struct GenPassOpts {
+    
+}
+
 // &'static 生命周期和进程是一样的
 // fn verify_input_file(filename: &str) -> Result<String, String> {
 fn verify_input_file(filename: &str) -> Result<String, &'static str> {
@@ -81,6 +89,8 @@ fn parse_format(format: &str) -> Result<OutputFormat, anyhow::Error> {
     format.parse::<OutputFormat>()
 }
 
+/// 将 OutputFormat 转为 &str
+/// 实现这个 trait 后，也可以将 &str 转为 OutputFormat 
 impl From<OutputFormat> for &'static str {
     fn from(format: OutputFormat) -> Self {
         match format {

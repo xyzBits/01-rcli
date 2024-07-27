@@ -52,6 +52,7 @@ pub fn process_csv(input: &str, output: String, format: OutputFormat) -> anyhow:
         // record.iter() -> 使用 record 的迭代器
         // zip() -> 将两个迭代器合并为一个元组的迭代器，[(header, record), ...]
         // collect::<Value>() -> 将元组转换为 JSON value
+        // 这样处理后，json 解析不会和结构体 Player 绑定
         let json_value = headers.iter().zip(record.iter()).collect::<Value>();
 
         println!("{:?}", record);
