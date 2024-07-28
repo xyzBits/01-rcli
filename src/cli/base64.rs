@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use clap::Parser;
 
-use super::verify_input_file;
+use super::verify_file;
 
 #[derive(Debug, Parser)]
 pub enum Base64SubCommand {
@@ -17,7 +17,7 @@ pub enum Base64SubCommand {
 #[derive(Debug, Parser)]
 pub struct Base64EncodeOpts {
     // 不加 pub ，外面 使用时无法通过 . 获取
-    #[arg(short, long, value_parser = verify_input_file, default_value = "-")]
+    #[arg(short, long, value_parser = verify_file, default_value = "-")]
     pub input: String,
 
     #[arg(long, value_parser = parse_base64_format, default_value = "standard")]
@@ -26,7 +26,7 @@ pub struct Base64EncodeOpts {
 
 #[derive(Debug, Parser)]
 pub struct Base64DecodeOpts {
-    #[arg(short, long, value_parser = verify_input_file, default_value = "-")]
+    #[arg(short, long, value_parser = verify_file, default_value = "-")]
     pub input: String,
 
     #[arg(long, value_parser = parse_base64_format, default_value = "standard")]
@@ -43,6 +43,7 @@ fn parse_base64_format(format: &str) -> anyhow::Result<Base64Format, anyhow::Err
     format.parse()
 }
 
+// 由 Base64Format 转为 &str
 impl From<Base64Format> for &'static str {
     fn from(format: Base64Format) -> Self {
         match format {

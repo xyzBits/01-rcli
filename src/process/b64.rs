@@ -1,11 +1,10 @@
-use std::fs::File;
 use std::io::Read;
 
 use anyhow::Result;
-use base64::Engine;
 use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
+use base64::Engine;
 
-use crate::Base64Format;
+use crate::{get_reader, Base64Format};
 
 pub fn process_encode(input: &str, format: Base64Format) -> Result<()> {
     let mut reader = get_reader(input)?;
@@ -30,7 +29,6 @@ pub fn process_decode(input: &str, format: Base64Format) -> Result<()> {
     // avoid accidental newlines
     let buf = buf.trim();
 
-
     let decode = match format {
         Base64Format::Standard => STANDARD.decode(buf)?,
         Base64Format::UrlSafe => URL_SAFE_NO_PAD.decode(buf)?,
@@ -41,23 +39,6 @@ pub fn process_decode(input: &str, format: Base64Format) -> Result<()> {
     println!("decode = {}", decode);
     Ok(())
 }
-
-
-fn get_reader(input: &str) -> Result<Box<dyn Read>> {
-    // 不同的数据类型，将他们提升到 dyn trait
-    // 通过 Box 来消除两种不同的数据类型，我只关心他们都实现了 Read trait 接口
-    // 两个不同的数据类型，用同一个 trait 消除他们之间的差异，让他们归为同一种类型
-    let reader: Box<dyn Read> = if input == "-" {
-        // if 是一个表达式，可以返回一个值，但是不同分支的返回值类型必须一样
-        Box::new(std::io::stdin())
-    } else {
-        Box::new(File::open(input)?)
-    };
-
-    Ok(reader)
-}
-
-
 
 #[cfg(test)]
 mod tests {

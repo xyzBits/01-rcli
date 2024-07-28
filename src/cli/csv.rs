@@ -1,4 +1,4 @@
-use super::verify_input_file;
+use super::verify_file;
 use anyhow::Result;
 use clap::Parser;
 use std::str::FromStr;
@@ -17,7 +17,7 @@ pub struct CsvOpts {
     // short - 设置单字母选项和长选项
     // long --
     // value_parser 对参数预先进行校验
-    #[arg(short, long, value_parser = verify_input_file)]
+    #[arg(short, long, value_parser = verify_file)]
     pub input: String,
 
     // #[arg(short, long, default_value = "output.json")]

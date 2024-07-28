@@ -3,10 +3,12 @@ use clap::Parser;
 pub use base64::*;
 pub use csv::*;
 pub use genpass::*;
+pub use text::*;
 
 mod base64;
 mod csv;
 mod genpass;
+mod text;
 
 /// https://juejin.cn/post/7242623208825110586?searchId=20240726205358129C4D8536158F998172
 ///  clap 的使用方式
@@ -36,11 +38,14 @@ pub enum SubCommand {
     // #[command(name = "base64", about = "Encode or decode base64")]
     #[command(subcommand)]
     Base64(Base64SubCommand),
+
+    #[command(subcommand)]
+    Text(TextSubCommand),
 }
 
 // &'static 生命周期和进程是一样的
-// fn verify_input_file(filename: &str) -> Result<String, String> {
-fn verify_input_file(filename: &str) -> anyhow::Result<String, &'static str> {
+// fn verify_file(filename: &str) -> Result<String, String> {
+fn verify_file(filename: &str) -> anyhow::Result<String, &'static str> {
     if filename == "-" || std::path::Path::new(filename).exists() {
         Ok(filename.into()) // into 将 &str 转为 String
     } else {
@@ -55,9 +60,9 @@ mod tests {
 
     #[test]
     fn test_verify_input_file() {
-        assert_eq!(verify_input_file("-"), Ok("-".into()));
-        assert_eq!(verify_input_file("*"), Err("File does not exist"));
-        assert_eq!(verify_input_file("Cargo.toml"), Ok("Cargo.toml".into()));
-        assert_eq!(verify_input_file("not-exist"), Err("File does not exist"));
+        assert_eq!(verify_file("-"), Ok("-".into()));
+        assert_eq!(verify_file("*"), Err("File does not exist"));
+        assert_eq!(verify_file("Cargo.toml"), Ok("Cargo.toml".into()));
+        assert_eq!(verify_file("not-exist"), Err("File does not exist"));
     }
 }
