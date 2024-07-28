@@ -42,7 +42,7 @@ pub fn process_decode(input: &str, format: Base64Format) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-
+    use base64::prelude::BASE64_STANDARD;
     use super::*;
 
     #[test]
@@ -57,5 +57,17 @@ mod tests {
         let input = "fixtures/b64.txt";
         let format = Base64Format::UrlSafe;
         assert!(process_decode(input, format).is_ok());
+    }
+
+
+    #[test]
+    fn test_base64_encode_decode() {
+        let data = b"hello world";
+        let encode = BASE64_STANDARD.encode(data);
+        //aGVsbG8gd29ybGQK
+        println!("{}", encode);
+
+        let decode = BASE64_STANDARD.decode(encode.as_bytes()).unwrap();
+        println!("{:?}", String::from_utf8(decode).unwrap());
     }
 }
