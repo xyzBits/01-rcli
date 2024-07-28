@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use rcli::{Base64SubCommand, Opts, process_csv, process_decode, process_encode, process_genpass, process_text_sign, SubCommand, TextSignFormat, TextSubCommand};
+use rcli::{Base64SubCommand, Opts, process_csv, process_decode, process_encode, process_genpass, process_text_sign, process_text_verify, SubCommand, TextSubCommand};
 
 // anyhow 实现了 大多数 standard 的转换
 // 其他类型的 Result 都能转换为 anyhow::Result
@@ -44,16 +44,11 @@ fn main() -> anyhow::Result<()> {
 
         SubCommand::Text(subcmd) => match subcmd {
             TextSubCommand::Sign(opts) => {
-                match opts.format {
-                    TextSignFormat::Blake3 => {
-                        process_text_sign(&opts.input, &opts.key, opts.format)?
-                    }
-                    TextSignFormat::Ed25519 => {
-
-                    }
-                }
+                process_text_sign(&opts.input, &opts.key, opts.format)?;
             }
-            TextSubCommand::Verify(text) => {}
+            TextSubCommand::Verify(opts) => {
+                process_text_verify(&opts.input, &opts.key, opts.format, &opts.sig)?;
+            }
         },
     }
 
