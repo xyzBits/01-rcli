@@ -39,6 +39,9 @@ pub struct TextVerifyOpts {
 
     #[arg(long, value_parser = verify_file, default_value = "-")]
     pub sig: String,
+
+    #[arg(long, default_value = "blake3", value_parser = parse_format)]
+    pub format: TextSignFormat,
 }
 
 #[derive(Clone, Copy, Debug)]
