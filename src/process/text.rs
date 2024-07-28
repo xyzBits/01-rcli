@@ -9,39 +9,6 @@ use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 
 use crate::{get_reader, TextSignFormat};
 
-trait TextSign {
-    // &[u8] impl Read, so we can
-    // sign the data from the reader and return the signature
-    // 代码体积小，但是性能一般，但 dispatch 比 io 效率高很多
-    fn sign(&self, reader: &mut dyn Read) -> Result<Vec<u8>>;
-}
-
-trait TextVerify {
-    // 产生的代码体大，性能好
-    // 在 trait 的接口中，对于 owned 的 value，不需要再额外的加 mut
-    // 但是在使用时，需要显式的加 mut
-    // Verify the data from the reader with the signature
-    fn verify<R: Read>(&self, reader: R, sig: &[u8]) -> Result<bool>;
-}
-
-trait KeyLoader {
-    fn load(path: impl AsRef<Path>) -> Result<Self>
-    where
-    // 返回定长的数据结构
-        Self: Sized; // marker trait ，需要有这种行为，说明 Self 是有固定长度的数据结构，str [u8] 这些不是有固定长度的
-}
-
-struct Blake3 {
-    key: [u8; 32],
-}
-
-struct Ed25519Singer {
-    key: SigningKey,
-}
-
-struct Ed25519Verifier {
-    key: VerifyingKey,
-}
 
 pub fn process_text_sign(input: &str, key: &str, format: TextSignFormat) -> Result<()> {
     let mut reader = get_reader(input)?;
@@ -93,6 +60,43 @@ pub fn process_text_verify(input: &str, key: &str, format: TextSignFormat, sig: 
 
     Ok(())
 }
+
+
+
+trait TextSign {
+    // &[u8] impl Read, so we can
+    // sign the data from the reader and return the signature
+    // 代码体积小，但是性能一般，但 dispatch 比 io 效率高很多
+    fn sign(&self, reader: &mut dyn Read) -> Result<Vec<u8>>;
+}
+
+trait TextVerify {
+    // 产生的代码体大，性能好
+    // 在 trait 的接口中，对于 owned 的 value，不需要再额外的加 mut
+    // 但是在使用时，需要显式的加 mut
+    // Verify the data from the reader with the signature
+    fn verify<R: Read>(&self, reader: R, sig: &[u8]) -> Result<bool>;
+}
+
+trait KeyLoader {
+    fn load(path: impl AsRef<Path>) -> Result<Self>
+    where
+    // 返回定长的数据结构
+        Self: Sized; // marker trait ，需要有这种行为，说明 Self 是有固定长度的数据结构，str [u8] 这些不是有固定长度的
+}
+
+struct Blake3 {
+    key: [u8; 32],
+}
+
+struct Ed25519Singer {
+    key: SigningKey,
+}
+
+struct Ed25519Verifier {
+    key: VerifyingKey,
+}
+
 
 impl TextSign for Blake3 {
     fn sign(&self, reader: &mut dyn Read) -> Result<Vec<u8>> {
@@ -181,6 +185,7 @@ impl Ed25519Singer {
     }
 
     fn try_new(key: &[u8]) -> Result<Self> {
+        // 生成 SigningKey 的方式 key 和 signer 对应
         let key = SigningKey::from_bytes(key.try_into()?);
         let singer = Ed25519Singer::new(key);
         Ok(singer)
@@ -222,6 +227,8 @@ impl Ed25519Verifier {
 
 #[cfg(test)]
 mod tests {
+    use base64::alphabet::STANDARD;
+    use rand::rngs::OsRng;
     use super::*;
 
     #[test]
@@ -236,4 +243,47 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_blake3() {
+        let key = b"1LNQ3ny#&Y@q^@8_5VDVzi9w4a_B!@6#";
+        let message = b"hello world";
+        let sig = blake3::keyed_hash(key, message).as_bytes().to_vec();
+        let sig1 = blake3::keyed_hash(key, message).as_bytes().to_vec();
+        assert_eq!(sig, sig1);
+    }
+
+    #[test]
+    fn test_ed25519_sign_and_verify() -> Result<()> {
+        let mut csprng = OsRng;
+        let signing_key = SigningKey::generate(&mut csprng);
+        // let signing_key = SigningKey::from_bytes("hello world".as_bytes().try_into()?);
+
+        let message = b"hello world";
+        let signature = signing_key.sign(message);
+
+        assert!(signing_key.verify(message, &signature).is_ok());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ed25519() -> Result<()> {
+        let mut csprng = OsRng;
+        let signing_key = SigningKey::generate(&mut csprng);
+        let key = signing_key.as_bytes().to_vec();
+        let signer = Ed25519Singer::try_new(&key)?;
+        let message = b"hello world";
+        let mut signature = signer.sign(&mut &message[..]).unwrap();
+        let result = URL_SAFE_NO_PAD.encode(&mut signature);
+        println!("{:?}", result);
+
+
+        let verifier = Ed25519Verifier::try_new(&key)?;
+
+        let result = verifier.verify(&mut &message[..], &signature).is_ok();
+        println!("verify result = {}", result);
+        Ok(())
+    }
+
 }
