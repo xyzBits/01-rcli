@@ -1,5 +1,8 @@
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use crypto::ed25519;
+use rand::RngCore;
+use rand::rngs::OsRng;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
@@ -68,3 +71,31 @@ fn test_base58_encode_decode() {
     let decode = bs58::decode(encode).into_vec();
     println!("{:?}", String::from_utf8(decode.unwrap()).unwrap());
 }
+
+#[test]
+fn test_ed25519() {
+    // 首先生成一个随机的 32 字节，也就是256位的密钥，
+    // 然后使用这个密钥生成一个 Ed25519 的公钥/私钥对
+    // 然后将这个公钥/私钥对存储在 wallet 结构中
+    let mut key = [0u8; 32];
+    let mut rand = OsRng::default();
+
+    // todo  Fill dest with random data.
+    rand.fill_bytes(&mut key);
+    let (secret_key, public_key) = ed25519::keypair(&key);
+    let secret_key = secret_key.to_vec();
+    let public_key = public_key.to_vec();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
