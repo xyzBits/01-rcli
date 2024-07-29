@@ -288,6 +288,21 @@ mod tests {
 
         assert!(signing_key.verify(message, &signature).is_ok());
 
+
+
+        let mut csprng = OsRng;
+        let signing_key = SigningKey::generate(&mut csprng);
+        // 由 private 推导出 public
+        // 只能通过 返回值进行 into 的类型推导
+        let verify_key: VerifyingKey = (&signing_key).into();
+
+        let verify_key = signing_key.verifying_key();
+
+        let message = b"hello world";
+        let signature = signing_key.sign(message);
+        assert!(verify_key.verify(message, &signature).is_ok());
+
+
         Ok(())
     }
 
