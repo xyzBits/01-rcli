@@ -1,6 +1,5 @@
 // 这个 trait 是在 rand::seq 中为 [T] 实现的，所以需要 import 到这里
 use rand::seq::SliceRandom;
-use zxcvbn::zxcvbn;
 
 // const 类型必须要指定，这里也不用指定 生命周期为 'static ，
 const UPPER: &'static [u8] = b"ABCDEFGHGKLMNPQRSTUVWXYZ";
@@ -15,7 +14,7 @@ pub fn process_genpass(
     lower: bool,
     number: bool,
     symbol: bool,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<String> {
     let mut rng = rand::thread_rng();
     let mut password = Vec::new();
     let mut chars = Vec::new();
@@ -52,10 +51,6 @@ pub fn process_genpass(
     // todo: make sure the password has at least one of each type
 
     let password = String::from_utf8(password)?;
-    println!("password = {}", password);
 
-    // output password strength in stderr
-    let estimate = zxcvbn(&password, &[])?;
-    eprintln!("Password strength: {}", estimate.score());
-    Ok(())
+    Ok(password)
 }

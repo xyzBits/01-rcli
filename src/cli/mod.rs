@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::path::{Path, PathBuf};
 
 pub use base64::*;
 pub use csv::*;
@@ -50,6 +51,15 @@ fn verify_file(filename: &str) -> anyhow::Result<String, &'static str> {
         Ok(filename.into()) // into 将 &str 转为 String
     } else {
         Err("File does not exist")
+    }
+}
+
+fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
+    let p = Path::new(path);
+    if p.exists() && p.is_dir() {
+        Ok(path.into())
+    } else {
+        Err("Path does not exist or is not a directory")
     }
 }
 

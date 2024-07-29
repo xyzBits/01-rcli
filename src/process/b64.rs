@@ -6,7 +6,7 @@ use base64::Engine;
 
 use crate::{get_reader, Base64Format};
 
-pub fn process_encode(input: &str, format: Base64Format) -> Result<()> {
+pub fn process_encode(input: &str, format: Base64Format) -> Result<String> {
     let mut reader = get_reader(input)?;
     let mut buf = Vec::new();
     reader.read_to_end(&mut buf)?;
@@ -16,12 +16,10 @@ pub fn process_encode(input: &str, format: Base64Format) -> Result<()> {
         Base64Format::UrlSafe => URL_SAFE_NO_PAD.encode(buf),
     };
 
-    println!("encode = {}", encode);
-
-    Ok(())
+    Ok(encode)
 }
 
-pub fn process_decode(input: &str, format: Base64Format) -> Result<()> {
+pub fn process_decode(input: &str, format: Base64Format) -> Result<Vec<u8>> {
     let mut reader = get_reader(input)?;
     let mut buf = String::new();
     reader.read_to_string(&mut buf)?;
@@ -35,15 +33,13 @@ pub fn process_decode(input: &str, format: Base64Format) -> Result<()> {
     };
 
     // todo Decode date might not be string (but for this example, we assume it is)
-    let decode = String::from_utf8(decode)?;
-    println!("decode = {}", decode);
-    Ok(())
+    Ok(decode)
 }
 
 #[cfg(test)]
 mod tests {
-    use base64::prelude::BASE64_STANDARD;
     use super::*;
+    use base64::prelude::BASE64_STANDARD;
 
     #[test]
     fn test_process_encode() {
@@ -58,7 +54,6 @@ mod tests {
         let format = Base64Format::UrlSafe;
         assert!(process_decode(input, format).is_ok());
     }
-
 
     #[test]
     fn test_base64_encode_decode() {

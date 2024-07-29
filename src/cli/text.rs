@@ -1,18 +1,28 @@
 use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::Parser;
 
-use super::verify_file;
+use super::{verify_file, verify_path};
 
 #[derive(Debug, Parser)]
 pub enum TextSubCommand {
     // 如果不写 name，就将小写作为 name
-    #[command(name = "sign", about = "Sign a message with a private/shared key")]
+    #[command(
+        name = "sign",
+        about = "Sign a message with a private/session key and return a signature"
+    )]
     Sign(TextSignOpts),
 
-    #[command(name = "verify", about = "Verify a signed message")]
+    #[command(
+        name = "verify",
+        about = "Verify a signature with a public/session key"
+    )]
     Verify(TextVerifyOpts),
+
+    #[command(about = "Generate a random blake3 key or ed25519 key pair")]
+    Generate(KeyGenerateOpts),
 }
 
 #[derive(Debug, Parser)]
@@ -37,11 +47,20 @@ pub struct TextVerifyOpts {
     #[arg(short, long, value_parser = verify_file)]
     pub key: String,
 
-    #[arg(long, value_parser = verify_file, default_value = "-")]
+    #[arg(long)]
     pub sig: String,
 
     #[arg(long, default_value = "blake3", value_parser = parse_format)]
     pub format: TextSignFormat,
+}
+
+#[derive(Debug, Parser)]
+pub struct KeyGenerateOpts {
+    #[arg(long, default_value = "blake3", value_parser = parse_format)]
+    pub format: TextSignFormat,
+
+    #[arg(short, long, value_parser = verify_path)]
+    pub output_path: PathBuf,
 }
 
 #[derive(Clone, Copy, Debug)]

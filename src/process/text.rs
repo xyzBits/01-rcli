@@ -1,16 +1,17 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
 use std::path::Path;
 
 use anyhow::Result;
-use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine;
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+use rand::rngs::OsRng;
 
-use crate::{get_reader, TextSignFormat};
+use crate::{get_reader, process_genpass, TextSignFormat};
 
-
-pub fn process_text_sign(input: &str, key: &str, format: TextSignFormat) -> Result<()> {
+pub fn process_text_sign(input: &str, key: &str, format: TextSignFormat) -> Result<String> {
     let mut reader = get_reader(input)?;
     let mut buf = Vec::new();
     reader.read_to_end(&mut buf)?;
@@ -29,13 +30,15 @@ pub fn process_text_sign(input: &str, key: &str, format: TextSignFormat) -> Resu
 
     let signed = URL_SAFE_NO_PAD.encode(&signed);
 
-    println!("signed = {}", signed);
-
-    Ok(())
+    Ok(signed)
 }
 
-
-pub fn process_text_verify(input: &str, key: &str, format: TextSignFormat, sig: &str) -> Result<()> {
+pub fn process_text_verify(
+    input: &str,
+    key: &str,
+    format: TextSignFormat,
+    sig: &str,
+) -> Result<bool> {
     let mut reader = get_reader(input)?;
 
     let sig = URL_SAFE_NO_PAD.decode(sig)?;
@@ -55,13 +58,8 @@ pub fn process_text_verify(input: &str, key: &str, format: TextSignFormat, sig: 
         }
     };
 
-
-    println!("verified = {}", verified);
-
-    Ok(())
+    Ok(verified)
 }
-
-
 
 trait TextSign {
     // &[u8] impl Read, so we can
@@ -81,7 +79,7 @@ trait TextVerify {
 trait KeyLoader {
     fn load(path: impl AsRef<Path>) -> Result<Self>
     where
-    // 返回定长的数据结构
+        // 返回定长的数据结构
         Self: Sized; // marker trait ，需要有这种行为，说明 Self 是有固定长度的数据结构，str [u8] 这些不是有固定长度的
 }
 
@@ -96,7 +94,6 @@ struct Ed25519Singer {
 struct Ed25519Verifier {
     key: VerifyingKey,
 }
-
 
 impl TextSign for Blake3 {
     fn sign(&self, reader: &mut dyn Read) -> Result<Vec<u8>> {
@@ -113,7 +110,7 @@ impl TextVerify for Blake3 {
         let mut buf = Vec::new();
         reader.read_to_end(&mut buf)?;
         // let hash = blake3::hash(&buf).as_bytes();
-        let hash = blake3::hash(&buf);
+        let hash = blake3::keyed_hash(&self.key, &buf);
         // 重新绑定后，生命周期到函数结束
         let hash = hash.as_bytes();
         Ok(hash == sig)
@@ -167,6 +164,14 @@ impl Blake3 {
         let key = fs::read(path)?;
         Self::try_new(&key)
     }
+
+    fn generate() -> Result<HashMap<&'static str, Vec<u8>>> {
+        let key = process_genpass(32, true, true, true, true)?;
+        let mut map = HashMap::new();
+        map.insert("blake3.txt", key.as_bytes().to_vec());
+
+        Ok(map)
+    }
 }
 
 impl KeyLoader for Ed25519Singer {
@@ -194,6 +199,17 @@ impl Ed25519Singer {
     fn load(path: impl AsRef<Path>) -> Result<Self> {
         let key = fs::read(path)?;
         Self::try_new(&key)
+    }
+
+    fn generate() -> Result<HashMap<&'static str, Vec<u8>>> {
+        let mut csprng = OsRng;
+        let sk = SigningKey::generate(&mut csprng);
+        let pk: VerifyingKey = (&sk).into();
+        let mut map = HashMap::new();
+        map.insert("ed25519.sk", sk.to_bytes().to_vec());
+        map.insert("ed25519.pk", pk.to_bytes().to_vec());
+
+        Ok(map)
     }
 }
 
@@ -224,11 +240,19 @@ impl Ed25519Verifier {
     }
 }
 
+// blake 生成的是一个 key
+// ed25519 是生成一对 key
+pub fn process_text_key_generate(format: TextSignFormat) -> Result<HashMap<&'static str, Vec<u8>>> {
+    match format {
+        TextSignFormat::Blake3 => Blake3::generate(),
+        TextSignFormat::Ed25519 => Ed25519Singer::generate(),
+    }
+}
 
 #[cfg(test)]
 mod tests {
-    use base64::alphabet::STANDARD;
     use rand::rngs::OsRng;
+
     use super::*;
 
     #[test]
@@ -278,12 +302,10 @@ mod tests {
         let result = URL_SAFE_NO_PAD.encode(&mut signature);
         println!("{:?}", result);
 
-
         let verifier = Ed25519Verifier::try_new(&key)?;
 
         let result = verifier.verify(&mut &message[..], &signature).is_ok();
         println!("verify result = {}", result);
         Ok(())
     }
-
 }
