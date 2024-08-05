@@ -288,8 +288,6 @@ mod tests {
 
         assert!(signing_key.verify(message, &signature).is_ok());
 
-
-
         let mut csprng = OsRng;
         let signing_key = SigningKey::generate(&mut csprng);
         // 由 private 推导出 public
@@ -301,7 +299,6 @@ mod tests {
         let message = b"hello world";
         let signature = signing_key.sign(message);
         assert!(verify_key.verify(message, &signature).is_ok());
-
 
         Ok(())
     }

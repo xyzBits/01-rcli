@@ -1,9 +1,8 @@
-use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use crypto::ed25519;
-use rand::RngCore;
 use rand::rngs::OsRng;
 use rand::seq::SliceRandom;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
 /// 数据结构实现 serde::Serialize trait
@@ -86,16 +85,3 @@ fn test_ed25519() {
     let secret_key = secret_key.to_vec();
     let public_key = public_key.to_vec();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

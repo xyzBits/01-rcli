@@ -5,10 +5,12 @@ pub use base64::*;
 pub use csv::*;
 pub use genpass::*;
 pub use text::*;
+pub use http::*;
 
 mod base64;
 mod csv;
 mod genpass;
+mod http;
 mod text;
 
 /// https://juejin.cn/post/7242623208825110586?searchId=20240726205358129C4D8536158F998172
@@ -42,6 +44,9 @@ pub enum SubCommand {
 
     #[command(subcommand)]
     Text(TextSubCommand),
+
+    #[command(subcommand)]
+    Http(HttpSubCommand),
 }
 
 // &'static 生命周期和进程是一样的
