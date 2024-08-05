@@ -3,7 +3,11 @@ use std::fs;
 use clap::Parser;
 use zxcvbn::zxcvbn;
 
-use rcli::{process_csv, process_decode, process_encode, process_genpass, process_text_key_generate, process_text_sign, process_text_verify, Base64SubCommand, Opts, SubCommand, TextSubCommand, HttpSubCommand};
+use rcli::{
+    process_csv, process_decode, process_encode, process_genpass, process_http_server,
+    process_text_key_generate, process_text_sign, process_text_verify, Base64SubCommand,
+    HttpSubCommand, Opts, SubCommand, TextSubCommand,
+};
 
 // anyhow 实现了 大多数 standard 的转换
 // 其他类型的 Result 都能转换为 anyhow::Result
@@ -75,10 +79,11 @@ fn main() -> anyhow::Result<()> {
         },
 
         SubCommand::Http(cmd) => match cmd {
-            HttpSubCommand::Serve(opts ) => {
+            HttpSubCommand::Serve(opts) => {
                 println!("Serving at http://0.0.0.0:{}", opts.port);
+                process_http_server(&opts.dir, opts.port)?;
             }
-        }
+        },
     }
 
     Ok(())

@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 pub use base64::*;
 pub use csv::*;
 pub use genpass::*;
-pub use text::*;
 pub use http::*;
+pub use text::*;
 
 mod base64;
 mod csv;

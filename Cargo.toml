@@ -25,4 +25,8 @@ zxcvbn = "2"
 bs58 = "0.5.1"
 
 rust-crypto = "0.2.36"
+tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros", "net", "fs"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+axum = { version = "0.7.4", features = ["http2", "query", "tracing"] }
 
