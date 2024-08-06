@@ -11,7 +11,9 @@ use rcli::{
 
 // anyhow 实现了 大多数 standard 的转换
 // 其他类型的 Result 都能转换为 anyhow::Result
-fn main() -> anyhow::Result<()> {
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let opts = Opts::parse();
 
     println!("{:?}", opts);
@@ -81,7 +83,7 @@ fn main() -> anyhow::Result<()> {
         SubCommand::Http(cmd) => match cmd {
             HttpSubCommand::Serve(opts) => {
                 println!("Serving at http://0.0.0.0:{}", opts.port);
-                process_http_server(&opts.dir, opts.port)?;
+                process_http_server(opts.dir, opts.port).await?;
             }
         },
     }
