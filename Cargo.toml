@@ -30,3 +30,4 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 axum = { version = "0.7.4", features = ["http2", "query", "tracing"] }
 
+tower-http = { version = "0.5.2", features = ["compression-full", "cors", "trace", "fs"] }
