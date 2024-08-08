@@ -73,3 +73,21 @@ async fn file_handler(
 async fn hello(state: State<Arc<HttpServeState>>) -> String {
     format!("hello {:?}", state.0)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{path::Path, path::PathBuf, sync::Arc};
+
+    #[tokio::test]
+    async fn test_file_handler() {
+        let state = Arc::new(HttpServeState {
+            path: PathBuf::from("."),
+        });
+
+        let (status, content) = file_handler(State(state), Path("Cargo.toml".to_string())).await;
+
+        assert_eq!(status, StatusCode::OK);
+        assert!(content.trim().starts_with("[package]"));
+    }
+}
